@@ -26,11 +26,11 @@ foo@bar: trident3 $
 ```console
 foo@bar: trident3 $ python -m venv venv
 foo@bar: trident3 $ source venv/bin/activate
-foo@bar: trident3 (venv) $ pip install -r requirements.txt
+(venv) foo@bar: trident3 $ pip install -r requirements.txt
 ```
 3. Run the script read.py with your project_id as the main argument.
 ```console
-foo@bar: trident3 $ python read.py example-projectid-1234
+(venv) foo@bar: trident3 $ python read.py example-projectid-1234
 ```
 4. You will be directed at some stage to allow access / log in as per the [pandas-gbq package](https://pandas-gbq.readthedocs.io/en/latest/intro.html#authenticating-to-bigquery)
 5. Get a coffee and have PATIENCE. The final dataset sizes are approx 485MB, 372MB, and 719MB for mimiciii, mimiciv, and combined respectively. It can take a while to run the script and download them.
