@@ -492,6 +492,34 @@ WITH diag AS
         GROUP BY le.subject_id
     ) s
 )
+, glucose AS
+(
+    select
+        d.subject_id
+        ,( select array_agg(struct(itemid,charttime,value) order by charttime)
+        from unnest(d.glucose) where value is not null 
+        ) as glucose
+    from (
+        SELECT s.subject_id
+        , array_agg(struct(s.itemid,s.charttime, s.value)) as glucose
+        from (
+            SELECT subject_id,
+               ITEMID as itemid,
+               charttime,
+               VALUENUM as value
+            FROM `physionet-data.mimic_hosp.labevents`
+            where ITEMID in (50931, 50809, 52027)
+            union all
+            SELECT subject_id,
+                ITEMID as itemid,
+                charttime,
+                VALUENUM as value
+            FROM `physionet-data.mimic_icu.chartevents`
+            where ITEMID in (225664, 220621, 226537)
+        ) s   
+        group by s.subject_id
+    ) d 
+)
 , vitals AS 
 (
     select 

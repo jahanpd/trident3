@@ -263,8 +263,6 @@ WITH surgery AS
         , (select array_agg(struct(charttime, VALUENUM as value) order by charttime) from unnest(bloods) 
         where ITEMID in (50808) and VALUENUM is not null) free_calcium 
         , (select array_agg(struct(charttime, VALUENUM as value) order by charttime) from unnest(bloods) 
-        where ITEMID in (50931, 50809) and VALUENUM is not null) glucose
-        , (select array_agg(struct(charttime, VALUENUM as value) order by charttime) from unnest(bloods) 
         where ITEMID in (50971, 50822) and VALUENUM is not null) potassium
         , (select array_agg(struct(charttime, VALUENUM as value) order by charttime) from unnest(bloods) 
         where ITEMID in (50824, 50983) and VALUENUM is not null) sodium
@@ -351,6 +349,34 @@ WITH surgery AS
         GROUP BY le.subject_id
     ) s
 )
+, glucose AS
+(
+    select
+        d.subject_id
+        ,( select array_agg(struct(itemid,charttime,value) order by charttime)
+        from unnest(d.glucose) where value is not null 
+        ) as glucose
+    from (
+        SELECT s.subject_id
+        , array_agg(struct(s.itemid,s.charttime, s.value)) as glucose
+        from (
+            SELECT subject_id,
+               ITEMID as itemid,
+               charttime,
+               VALUENUM as value
+            FROM `physionet-data.mimiciii_clinical.labevents`
+            where ITEMID in (50931, 50809)
+            union all
+            SELECT subject_id,
+                ITEMID as itemid,
+                charttime,
+                VALUENUM as value
+            FROM `physionet-data.mimiciii_clinical.chartevents`
+            where ITEMID in (807, 811, 1529, 3744, 3745, 22664, 220621, 226537)
+        ) s   
+        group by s.subject_id
+    ) d 
+)
 , vitals AS 
 (
     select 
@@ -391,155 +417,203 @@ WITH surgery AS
         group by g.icustay_id
     ) s
 )
--- blood procuct tables 
+-- blood procuct tables
 , prbcs AS
 (
     select
-        s.ICUSTAY_ID,
-        (select array_agg(struct(CHARTTIME, bloodproduct, unit) order by CHARTTIME) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        d.ICUSTAY_ID,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct,
-        from `physionet-data.mimiciii_clinical.inputevents_cv`
-        where (
-            ITEMID in (226370, 227070, 226368, 225168, 221013, 44560, 43901, 43010, 30002, 30106, 30179, 30001, 30004, 42588, 42239, 46407, 42186)
-        )
+            array_agg(struct(s.charttime, s.bloodproduct, s.unit)) bloodproduct,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_cv`
+            where (
+                ITEMID in (226370, 227070, 226368, 225168, 221013, 44560, 43901, 43010, 30002, 30106, 30179, 30001, 30004, 42588, 42239, 46407, 42186)
+            )
+            union all
+            select
+                ICUSTAY_ID
+                , STARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_mv`
+            where (
+                ITEMID in (226370, 227070, 226368, 225168, 221013, 44560, 43901, 43010, 30002, 30106, 30179, 30001, 30004, 42588, 42239, 46407, 42186)
+            )
+        ) s 
         group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(STARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct, 
-        from `physionet-data.mimiciii_clinical.inputevents_mv`
-        where (
-            ITEMID in (226370, 227070, 226368, 225168, 221013, 44560, 43901, 43010, 30002, 30106, 30179, 30001, 30004, 42588, 42239, 46407, 42186)
-        )
-        group by ICUSTAY_ID
-    ) s
+    ) d
 ) 
 , plts AS
 (
     select
-        s.ICUSTAY_ID,
-        (select array_agg(struct(CHARTTIME, bloodproduct, unit) order by CHARTTIME) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        d.ICUSTAY_ID,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct,
-        from `physionet-data.mimiciii_clinical.inputevents_cv`
-        where (
-            ITEMID in (30006, 30105, 225170, 227071, 226369)
-        )
+            array_agg(struct(s.charttime, s.bloodproduct, s.unit)) bloodproduct,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_cv`
+            where (
+                ITEMID in (30006, 30105, 225170, 227071, 226369)
+            )
+            union all
+            select
+                ICUSTAY_ID
+                , STARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_mv`
+            where (
+                ITEMID in (30006, 30105, 225170, 227071, 226369)
+            )
+        ) s 
         group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(STARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct, 
-        from `physionet-data.mimiciii_clinical.inputevents_mv`
-        where (
-            ITEMID in (30006, 30105, 225170, 227071, 226369)
-        )
-        group by ICUSTAY_ID 
-    ) s
+    ) d
 )
 , ffp AS
 (
     select
-        s.ICUSTAY_ID,
-        (select array_agg(struct(CHARTTIME, bloodproduct, unit) order by CHARTTIME) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        d.ICUSTAY_ID,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct,
-        from `physionet-data.mimiciii_clinical.inputevents_cv`
-        where (
-            ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
-        )
+            array_agg(struct(s.charttime, s.bloodproduct, s.unit)) bloodproduct,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_cv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+            union all
+            select
+                ICUSTAY_ID
+                , STARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_mv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+        ) s 
         group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(STARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct, 
-        from `physionet-data.mimiciii_clinical.inputevents_mv`
-        where (
-            ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
-        )
-        group by ICUSTAY_ID  
-    ) s
+    ) d
 )
 , cryo AS
 (
     select
-        s.ICUSTAY_ID,
-        (select array_agg(struct(CHARTTIME, bloodproduct, unit) order by CHARTTIME) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        d.ICUSTAY_ID,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct,
-        from `physionet-data.mimiciii_clinical.inputevents_cv`
-        where (
-            ITEMID in (30007, 42723, 42785, 43952, 44287, 43008, 45134, 45317, 45354, 46192, 44242, 44242, 225171, 226371)
-        )
+            array_agg(struct(s.charttime, s.bloodproduct, s.unit)) bloodproduct,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_cv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+            union all
+            select
+                ICUSTAY_ID
+                , STARTTIME as charttime
+                , AMOUNT as bloodproduct
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_mv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+        ) s 
         group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(STARTTIME as charttime, AMOUNT as bloodproduct, AMOUNTUOM as unit)) bloodproduct, 
-        from `physionet-data.mimiciii_clinical.inputevents_mv`
-        where (
-            ITEMID in (30007, 42723, 42785, 43952, 44287, 43008, 45134, 45317, 45354, 46192, 44242, 44242, 225171, 226371)
-        )
-        group by ICUSTAY_ID
-    ) s
+    ) d
 )
 -- drain tube output
 , dt_output AS
 (
     select
-        s.ICUSTAY_ID,
-        (select array_agg(struct(charttime, output, unit) order by CHARTTIME) from unnest(output) where output is not null) output,
+        d.ICUSTAY_ID,
+        (select array_agg(struct(charttime, output, unit) order by CHARTTIME) from unnest(d.output) where output is not null) output,
     from (
         select 
-            ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, VALUE as output, VALUEUOM as unit)) output,
-        from `physionet-data.mimiciii_clinical.outputevents` as df
-        left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-        where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
-        group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, VALUENUM as output, VALUEUOM as unit)) output, 
-        from `physionet-data.mimiciii_clinical.chartevents` as df
-        left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-        where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
-        group by ICUSTAY_ID
-    ) s
+            s.ICUSTAY_ID,
+            array_agg(struct(s.charttime, s.output, s.unit)) output,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , VALUE as output
+                , VALUEUOM as unit
+            from `physionet-data.mimiciii_clinical.outputevents` as df
+            left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
+            where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+            union all
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , VALUENUM as output
+                , VALUEUOM as unit
+            from `physionet-data.mimiciii_clinical.chartevents` as df
+            left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
+            where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+        ) s
+        group by s.ICUSTAY_ID
+    ) d
 )
 , insulin AS
 (
     select
-        s.ICUSTAY_ID,
+        d.ICUSTAY_ID,
         (select array_agg(struct(charttime, amount, unit) order by charttime) from unnest(insulin) where amount is not null) insulin,
     from (
         select 
             ICUSTAY_ID,
-            array_agg(struct(CHARTTIME as charttime, AMOUNT as amount, AMOUNTUOM as unit)) insulin,
-        from `physionet-data.mimiciii_clinical.inputevents_cv`
-        where (
-            ITEMID in (30310, 30045, 30100, 42763, 44354, 44518, 45186, 45322, 223257, 223258, 223259, 223260, 223261, 223262)
-        )
+            array_agg(struct(s.charttime, s.amount, s.unit)) insulin,
+        from (
+            select
+                ICUSTAY_ID
+                , CHARTTIME as charttime
+                , AMOUNT as amount
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_cv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+            union all
+            select
+                ICUSTAY_ID
+                , STARTTIME as charttime
+                , AMOUNT as amount
+                , AMOUNTUOM as unit
+            from `physionet-data.mimiciii_clinical.inputevents_mv`
+            where (
+                ITEMID in (30005, 30180, 5404, 42185, 44236, 43009, 46410, 46418, 46684, 44044, 45669, 42323, 227072, 220970, 226367)
+            )
+        ) s 
         group by ICUSTAY_ID
-        union all
-        select
-            ICUSTAY_ID,
-            array_agg(struct(STARTTIME as charttime, AMOUNT as amount, AMOUNTUOM as unit)) insulin, 
-        from `physionet-data.mimiciii_clinical.inputevents_mv`
-        where (
-            ITEMID in (30310, 30045, 30100, 42763, 44354, 44518, 45186, 45322, 223257, 223258, 223259, 223260, 223261, 223262)
-        )
-        group by ICUSTAY_ID
-    ) s
+    ) d
 )
 , vent AS (
     select
@@ -666,7 +740,7 @@ SELECT
         where charttime > icu.intime and charttime < icu.outtime
     ) as free_calcium
     , (select array_agg(struct(charttime, value) order by charttime) 
-        from unnest(bloods.glucose)
+        from unnest(glucose.glucose)
         where charttime > icu.intime and charttime < icu.outtime
     ) as glucose
     , (select array_agg(struct(charttime, value) order by charttime) 
@@ -856,6 +930,7 @@ LEFT JOIN com ON icu.hadm_id = com.hadm_id
 LEFT JOIN vitals ON icu.ICUSTAY_ID = vitals.icustay_id
 -- join the bloods table
 LEFT JOIN bloods ON icu.subject_id = bloods.subject_id
+LEFT JOIN glucose ON icu.subject_id = glucose.subject_id
 -- joic CV physiology tables 
 LEFT JOIN cardiac_index ON icu.ICUSTAY_ID = cardiac_index.icustay_id
 LEFT JOIN echos ON icu.hadm_id = echos.hadm_id
