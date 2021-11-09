@@ -372,7 +372,9 @@ WITH surgery AS
                 charttime,
                 VALUENUM as value
             FROM `physionet-data.mimiciii_clinical.chartevents`
-            where ITEMID in (807, 811, 1529, 3744, 3745, 22664, 220621, 226537)
+            where 
+                ITEMID in (807, 811, 1529, 3744, 3745, 22664, 220621, 226537) and
+                ERROR is distinct from 1
         ) s   
         group by s.subject_id
     ) d 
@@ -413,7 +415,9 @@ WITH surgery AS
             g.icustay_id,
             array_agg(struct(g.charttime, g.valuenum as ci)) ci
         from `physionet-data.mimiciii_clinical.chartevents` g
-        where itemid in (228177, 226859, 228368, 226859, 116, 7610)
+        where 
+            itemid in (228177, 226859, 228368, 226859, 116, 7610)
+            and ERROR is distinct from 1
         group by g.icustay_id
     ) s
 )
@@ -577,7 +581,9 @@ WITH surgery AS
                 , VALUEUOM as unit
             from `physionet-data.mimiciii_clinical.chartevents` as df
             left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-            where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+            where 
+                CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+                and ERROR is distinct from 1
         ) s
         group by s.ICUSTAY_ID
     ) d
