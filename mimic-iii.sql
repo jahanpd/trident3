@@ -572,7 +572,7 @@ WITH surgery AS
                 , VALUEUOM as unit
             from `physionet-data.mimiciii_clinical.outputevents` as df
             left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-            where CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+            where REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
             union all
             select
                 ICUSTAY_ID
@@ -582,7 +582,7 @@ WITH surgery AS
             from `physionet-data.mimiciii_clinical.chartevents` as df
             left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
             where 
-                CONTAINS_SUBSTR(labels.LABEL, 'drain') or CONTAINS_SUBSTR(labels.LABEL, 'dt')
+                REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
                 and ERROR is distinct from 1
         ) s
         group by s.ICUSTAY_ID

@@ -636,7 +636,7 @@ WITH diag AS
             array_agg(struct(CHARTTIME as charttime, VALUE as output, VALUEUOM as unit)) output,
         from `physionet-data.mimic_icu.outputevents` as df
         left join `physionet-data.mimic_icu.d_items` as labels on labels.itemid = df.itemid
-        where CONTAINS_SUBSTR(labels.LABEL, 'drain') and CONTAINS_SUBSTR(labels.linksto, 'outputevents')
+        where REGEXP_CONTAINS(labels.label, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
         group by stay_id
     ) s
 )
