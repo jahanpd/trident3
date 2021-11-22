@@ -1,1 +1,6 @@
 *.csv
+*.json
+*.pickle
+tests.py
+basebq.py
+

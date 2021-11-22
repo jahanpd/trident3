@@ -572,7 +572,16 @@ WITH surgery AS
                 , VALUEUOM as unit
             from `physionet-data.mimiciii_clinical.outputevents` as df
             left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-            where REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
+            where (
+                df.itemid in ( 
+                    226588 ,  26589 ,  265890 ,  265891 ,  265892 ,  265893 ,  229413 ,  229414 ,  226619 ,
+                    226620 ,  226612 ,  226628 ,  226599 ,  226598 ,  226597 ,  226600 ,  226601 ,  226602 , 
+                    42315 ,  42327 ,  42328 ,  42498 ,  42516 ,  42540 ,  40290,  41683 ,  41698 ,  41718 ,  
+                    42881 ,  41933 ,  40073 ,  40071 ,  40075 ,  40077 ,  40080 ,  40084 ,   40086 ,  40088 ,  
+                    40091 ,  41707 ,  45417 ,  45883 ,  42539 ,  42210 ,  45813 ,  45227 ,  41003 ,  42498 ,  
+                    40049 ,  41707 ,  45664 ,  45883 ,  42210 ,  45813 ,  45227 ,  41003 ,  40048 ,  40050 ,  
+                    6009 ,  40090 ,  42834 ,  43114 ,  40049 ,  42936 ,  43668 )
+            ) or REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
             union all
             select
                 ICUSTAY_ID
@@ -581,8 +590,16 @@ WITH surgery AS
                 , VALUEUOM as unit
             from `physionet-data.mimiciii_clinical.chartevents` as df
             left join `physionet-data.mimiciii_clinical.d_items` as labels on labels.ITEMID = df.ITEMID
-            where 
-                REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)')
+            where ((
+                df.itemid in ( 
+                    226588 ,  26589 ,  265890 ,  265891 ,  265892 ,  265893 ,  229413 ,  229414 ,  226619 ,
+                    226620 ,  226612 ,  226628 ,  226599 ,  226598 ,  226597 ,  226600 ,  226601 ,  226602 , 
+                    42315 ,  42327 ,  42328 ,  42498 ,  42516 ,  42540 ,  40290,  41683 ,  41698 ,  41718 ,  
+                    42881 ,  41933 ,  40073 ,  40071 ,  40075 ,  40077 ,  40080 ,  40084 ,   40086 ,  40088 ,  
+                    40091 ,  41707 ,  45417 ,  45883 ,  42539 ,  42210 ,  45813 ,  45227 ,  41003 ,  42498 ,  
+                    40049 ,  41707 ,  45664 ,  45883 ,  42210 ,  45813 ,  45227 ,  41003 ,  40048 ,  40050 ,  
+                    6009 ,  40090 ,  42834 ,  43114 ,  40049 ,  42936 ,  43668 )
+            ) or REGEXP_CONTAINS(labels.LABEL, '(?i)(chest|drain|.+).{0,3}(tube|drain)'))
                 and ERROR is distinct from 1
         ) s
         group by s.ICUSTAY_ID
@@ -657,6 +674,50 @@ WITH surgery AS
         from `physionet-data.mimiciii_derived.suspicion_of_infection` g
         group by g.icustay_id
     ) s
+)
+--PASP (Luke)
+, PASP AS (
+   select
+       s.icustay_id,
+       (select array_agg(struct(charttime, PASP) order by charttime) from unnest(PASP) where PASP is not null) PASP,
+   from (
+       select
+           g.icustay_id,
+           array_agg(struct(g.charttime, g.valuenum as PASP)) PASP
+       from `physionet-data.mimiciii_clinical.chartevents` g
+       where itemid in (220059, 491)
+       group by g.icustay_id
+   ) s
+)
+ 
+-- PADP (Luke)
+, PADP AS (
+   select
+       s.icustay_id,
+       (select array_agg(struct(charttime, PADP) order by charttime) from unnest(PADP) where PADP is not null) PADP,
+   from (
+       select
+           g.icustay_id,
+           array_agg(struct(g.charttime, g.valuenum as PADP)) PADP
+       from `physionet-data.mimiciii_clinical.chartevents` g
+       where itemid in (220060, 8448)
+       group by g.icustay_id
+   ) s
+)
+ 
+-- mPAP (Luke)
+, mPAP AS (
+   select
+       s.icustay_id,
+       (select array_agg(struct(charttime, mPAP) order by charttime) from unnest(mPAP) where mPAP is not null) mPAP,
+   from (
+       select
+           g.icustay_id,
+           array_agg(struct(g.charttime, g.valuenum as mPAP)) mPAP
+       from `physionet-data.mimiciii_clinical.chartevents` g
+       where itemid in (220061, 492)
+       group by g.icustay_id
+   ) s
 )
 -- select features for final dataset
 -- comment out any unnecessary features

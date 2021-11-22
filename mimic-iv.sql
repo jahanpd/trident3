@@ -7,6 +7,13 @@ WITH diag AS
         , CASE WHEN icd_version = 10 THEN icd_code ELSE NULL END AS icd10_code
     FROM `physionet-data.mimic_hosp.diagnoses_icd` diag
 )
+, icu_times AS (
+    SELECT
+        hadm_id,
+        array_agg(struct(icu_intime, icu_outtime) order by icu_intime) icustay_array
+    FROM `physionet-data.mimic_derived.icustay_detail` 
+    GROUP BY hadm_id
+)
 , com AS
 -- prepare comorbidites according to charleston comorb index
 (
@@ -106,7 +113,7 @@ WITH diag AS
         , MAX(CASE WHEN 
             SUBSTR(icd9_code, 1, 3) = '725'
             OR
-            SUBSTR(icd9_code, 1, 4) IN ('4465','7100','7101','7102','7103',
+           SUBSTR(icd9_code, 1, 4) IN ('4465','7100','7101','7102','7103',
                                                     '7104','7140','7141','7142','7148')
             OR
             SUBSTR(icd10_code, 1, 3) IN ('M05','M06','M32','M33','M34')
@@ -278,6 +285,95 @@ WITH diag AS
             SUBSTR(icd10_code, 1, 3) IN ('Z87', 'F17')
             THEN 1 
             ELSE 0 END) AS smoking
+        -- MENTAL AND BEHAVIOURAL DISORDERS DUE TO USE OF:
+        -- OPIOIDS
+        -- opioid dependence
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 4) IN ('F112')
+            OR
+            SUBSTR(icd9_code, 1, 4) IN ('3040')
+            THEN 1
+            ELSE 0 END) AS opioid_dependence_disorders
+            -- opioid abuse
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 4) IN ('F111')
+            OR
+            SUBSTR(icd9_code, 1, 4) IN ('3055')
+            THEN 1
+            ELSE 0 END) AS opioid_abuse_disorders
+             -- opioid use
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 4) IN ('F119')
+            THEN 1
+            ELSE 0 END) AS opioid_use_disorders
+            -- opioid other
+        ,MAX(CASE WHEN 
+            icd10_code IN ('F11')
+            THEN 1
+            ELSE 0 END) AS opioid_other_disorders
+        -- ALCOHOL (includes both dependence and harmful use, in remission, continuous, episodic etc.) Also includes any acute intoxication, hangover or drunkenness.
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) IN ('F10')
+            OR
+            SUBSTR(icd9_code, 1, 4) IN ('3050')
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('303','291')
+            THEN 1
+            ELSE 0 END) AS alcohol_use_disorders
+        -- OTHER DRUGS (includes both dependence and harmful use, in remission, continuous, episodic etc.) 
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) BETWEEN 'F12' AND 'F19'
+            OR
+            SUBSTR(icd9_code, 1, 4) BETWEEN '3041' AND '3049'
+            OR
+            SUBSTR(icd9_code, 1, 4) BETWEEN '3051' AND '3054'
+            OR
+            SUBSTR(icd9_code, 1, 4) BETWEEN '3056' AND '3059'
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('303','292')
+            THEN 1
+            ELSE 0 END) AS other_drug_use_disorders
+     -- Organic mental disorders 
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) BETWEEN 'F00' AND 'F09'
+            OR
+            SUBSTR(icd9_code, 1, 3) BETWEEN '293' AND '294'
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('290')
+            THEN 1
+            ELSE 0 END) AS organic_mental_disorders
+            -- Non-organic psychoses
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) BETWEEN 'F20' AND 'F29'
+            OR
+            SUBSTR(icd9_code, 1, 3) BETWEEN '297' AND '299'
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('295')
+            THEN 1
+            ELSE 0 END) AS psychotic_disorders
+            -- Mood disorders
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) BETWEEN 'F30' AND 'F39'
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('296')
+            THEN 1
+            ELSE 0 END) AS mood_disorders
+             -- Personality and behavioural disorders
+        ,MAX(CASE WHEN 
+            SUBSTR(icd10_code, 1, 3) BETWEEN 'F60' AND 'F69'
+            OR
+            SUBSTR(icd9_code, 1, 3) IN ('301','302')
+            THEN 1
+            ELSE 0 END) AS personality_disorders
+            --Chronic pain 
+            ,MAX(CASE WHEN 
+            (icd10_code IN ('G546','G890','G892', 'G8921','G8922','G8928','G8929','G893','G894','R392'))
+            OR
+             (SUBSTR(icd10_code, 1, 4) IN ('G905'))
+             OR
+            SUBSTR(icd9_code, 1, 4) IN ('3382','3383', '3384', '3380')
+            THEN 1
+            ELSE 0 END) AS chronic_pain_conditions
     FROM `physionet-data.mimic_core.admissions` ad
     LEFT JOIN diag
     ON ad.hadm_id = diag.hadm_id
@@ -290,6 +386,7 @@ WITH diag AS
         hadm_id
         , CASE WHEN icd_version = 9 THEN icd_code ELSE NULL END AS icd9_code
         , CASE WHEN icd_version = 10 THEN icd_code ELSE NULL END AS icd10_code
+        , chartdate
     FROM `physionet-data.mimic_hosp.procedures_icd` diag
 )
 , surgery AS
@@ -297,6 +394,7 @@ WITH diag AS
 (
     SELECT
         ad.hadm_id
+        , min(procs.chartdate) chartdate
 
         -- CABG
         , MAX(CASE WHEN
@@ -655,9 +753,52 @@ WITH diag AS
         group by stay_id
     ) s
 )
+--PASP (Luke)
+, PASP AS (
+   select
+       s.stay_id,
+       (select array_agg(struct(charttime, PASP) order by charttime) from unnest(PASP) where PASP is not null) PASP,
+   from (
+       select
+           g.stay_id,
+           array_agg(struct(g.charttime, g.valuenum as PASP)) PASP
+       from `physionet-data.mimic_icu.chartevents` g
+       where itemid in (220059)
+       group by g.stay_id
+   ) s
+)
+-- PADP (Luke)
+, PADP AS (
+   select
+       s.stay_id,
+       (select array_agg(struct(charttime, PADP) order by charttime) from unnest(PADP) where PADP is not null) PADP,
+   from (
+       select
+           g.stay_id,
+           array_agg(struct(g.charttime, g.valuenum as PADP)) PADP
+       from `physionet-data.mimic_icu.chartevents` g
+       where itemid in (220060)
+       group by g.stay_id
+   ) s
+)
+-- mPAP (Luke)
+, mPAP AS (
+   select
+       s.stay_id,
+       (select array_agg(struct(charttime, mPAP) order by charttime) from unnest(mPAP) where mPAP is not null) mPAP,
+   from (
+       select
+           g.stay_id,
+           array_agg(struct(g.charttime, g.valuenum as mPAP)) mPAP
+       from `physionet-data.mimic_icu.chartevents` g
+       where itemid in (220061)
+       group by g.stay_id
+   ) s
+)
 , vent AS (
     select
         s.stay_id,
+        (select min(starttime) from unnest (vent)) start_vent,
         (select array_agg(struct(starttime, endtime, duration_hours) order by starttime) from unnest(vent) where duration_hours is not null) vent,
     from (
         select
@@ -671,6 +812,7 @@ WITH diag AS
 , ventsettings AS (
     select
         s.stay_id,
+        (select min(charttime) from unnest(vent)) start_vent,
         (select array_agg(
             struct(
                 charttime, rrset, rrtotal, rrspont, minute_volume, tvset, tvobs, tvspont, plat, peep, fio2, mode, mode_ham, type
@@ -723,6 +865,44 @@ WITH diag AS
         group by g.stay_id
     ) s
 )
+, inotropes as (
+    SELECT 
+        s.stay_id, 
+        array_agg(struct(linkorderid, inotrope_duration, inotrope, starttime, endtime)) as inotrope 
+    FROM
+        (
+        SELECT 
+            stay_id,
+            linkorderid, 
+            DATETIME_DIFF(endtime, starttime, HOUR) AS inotrope_duration,
+            starttime,
+            endtime,
+            CASE 
+                WHEN itemid=221986 THEN 'milrinone'
+                WHEN itemid=221662 THEN 'dopamine'
+                WHEN itemid=221653 THEN 'dobutamine'
+                WHEN itemid IN (221289, 221289, 229617, 229617) THEN 'epinephrine'
+                WHEN itemid=221906 THEN 'norepinephrine'
+                WHEN itemid IN (221749, 229632, 229630) THEN 'phenylephrine'
+                WHEN itemid=222315 THEN 'vasopressin'
+                WHEN itemid=227692 THEN 'isuprel'
+            ELSE null
+            END AS inotrope
+        FROM `physionet-data.mimic_icu.inputevents`
+        WHERE itemid IN (
+        221986, --Milrinone
+        221662, --Dopamine
+        221653, --Dobutamine
+        221289, 221289, 229617, 229617,  --Epinephrine
+        221906, --Norepinephrine
+        221749, 229632, 229630, -- Phenylephrine
+        222315, --Vasopressin
+        227692 --Isuprel
+        )
+    ) s
+    GROUP BY s.stay_id
+)
+
 -- select features for final dataset
 -- comment out any unnecessary features
 SELECT
@@ -735,15 +915,22 @@ SELECT
     , height.height as height
     , weight.weight as weight
     , ad.admission_type as admission_type
+
     , ad.admission_location as admission_location
     , ad.admittime as admittime
     , ad.dischtime as dischtime
     , icu.intime as intime
+    , CASE
+        WHEN vent.start_vent IS NOT NULL THEN vent.start_vent
+        ELSE ventsettings.start_vent
+      END
+      AS postop_intime
     , icu.outtime as outtime
     , ad.insurance as insurance
     , ad.marital_status as marital_status
     , ad.language as language
     , icu2.icustay_seq as icustay_seq
+    , icu_times.icustay_array as icustay_array
     , icu.los as los
     , icu.first_careunit as first_careunit
     , icu.last_careunit as last_careunit
@@ -775,6 +962,17 @@ SELECT
     , com.metastatic_solid_tumor as met_ca
     , com.aids as aids
     , com.smoking as smoking
+    , com.opioid_dependence_disorders as opioid_dependence_disorders
+    , com.opioid_use_disorders as opioid_use_disorders
+    , com.opioid_abuse_disorders as opioid_abuse_disorders
+    , com.opioid_other_disorders as opioid_other_disorders
+    , com.alcohol_use_disorders as alcohol_use_disorders
+    , com.other_drug_use_disorders as other_drug_use_disorders
+    , com.organic_mental_disorders as organic_mental_disorders
+    , com.psychotic_disorders as psychotic_disorders
+    , com.mood_disorders as mood_disorders
+    , com.personality_disorders as personality_disorders
+    , com.chronic_pain_conditions as chronic_pain_conditions
     -- vitals
     , vitals.hr as hr
     , vitals.sbp as sbp
@@ -783,6 +981,9 @@ SELECT
     , vitals.rr as rr
     , vitals.temp as temp
     , vitals.spo2 as spo2
+    , PASP.PASP as pasp
+    , PADP.PADP as padp
+    , mPAP.mPAP as mpap
     -- bloods, these need to be filtered accoring to admission times
     -- as original datatable above is grouped by subject id which
     -- captures community results as well (eg for hba1c), but means
@@ -918,6 +1119,7 @@ SELECT
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ggt)
         where charttime > icu.intime and charttime < icu.outtime
+
     ) as ggt
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bilirubin_total)
@@ -981,6 +1183,9 @@ SELECT
         ELSE null END ) as reint_time
     , (vent.vent[ORDINAL(1)].endtime) ext_time
     , infection.inf as infection
+    , (select 
+        array_agg(struct(linkorderid, inotrope_duration, inotrope)) from unnest(inotropes.inotrope) 
+        where inotrope_duration is not null) inotropes
     , ad.hospital_expire_flag as hospital_expire_flag
     , ad.DEATHTIME as deathtime
     , pat.dod as dod
@@ -990,6 +1195,7 @@ SELECT
 FROM `physionet-data.mimic_core.admissions` ad
 LEFT JOIN surgery ON ad.hadm_id = surgery.hadm_id
 RIGHT JOIN `physionet-data.mimic_icu.icustays` AS icu ON ad.hadm_id = icu.hadm_id
+LEFT JOIN icu_times on icu_times.hadm_id = ad.hadm_id
 LEFT JOIN `physionet-data.mimic_derived.icustay_detail` AS icu2 ON icu.stay_id = icu2.stay_id
 LEFT JOIN `physionet-data.mimic_core.patients` AS pat ON icu.subject_id = pat.subject_id
 LEFT JOIN `physionet-data.mimic_derived.height`AS height ON icu.stay_id = height.stay_id
@@ -1010,6 +1216,10 @@ LEFT JOIN cryo ON icu.stay_id = cryo.stay_id
 LEFT JOIN infection on icu.stay_id = infection.stay_id
 LEFT JOIN insulin on icu.stay_id = insulin.stay_id
 LEFT JOIN ventsettings ON icu.stay_id = ventsettings.stay_id
+LEFT JOIN PASP on icu.stay_id = PASP.stay_id
+LEFT JOIN PADP on icu.stay_id = PADP.stay_id
+LEFT JOIN mPAP on icu.stay_id = mPAP.stay_id
+LEFT JOIN inotropes on icu.stay_id = inotropes.stay_id
 -- outcome tables
 LEFT JOIN dt_output on icu.stay_id = dt_output.stay_id
 LEFT JOIN vent on icu.stay_id = vent.stay_id
@@ -1017,4 +1227,13 @@ LEFT JOIN aki ON icu.stay_id = aki.stay_id
 -- filter for only the CTS patients
 WHERE (
     surgery.cabg = 1 or surgery.aortic = 1 or surgery.mitral = 1 or surgery.tricuspid = 1 or surgery.pulmonary = 1
-) and (icu2.icustay_seq = 1)
+) and (
+    (DATETIME(surgery.chartdate, TIME "00:00:00") > DATETIME_SUB(vent.start_vent, INTERVAL 1 DAY)) or (
+    (DATETIME(surgery.chartdate, TIME "00:00:00") > DATETIME_SUB(ventsettings.start_vent, INTERVAL 1 DAY)))
+) and (
+    (DATETIME(surgery.chartdate, TIME "00:00:00")  < DATETIME_ADD(vent.start_vent,INTERVAL 1 DAY)) or ( 
+    (DATETIME(surgery.chartdate, TIME "00:00:00")  < DATETIME_ADD(ventsettings.start_vent,INTERVAL 1 DAY))
+    )
+) and (
+    icu.last_careunit in ('Cardiac Vascular Intensive Care Unit (CVICU)')
+) 
