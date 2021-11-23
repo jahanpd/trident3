@@ -92,7 +92,7 @@ WITH surgery AS
             SUBSTR(icd9_code, 1, 3) BETWEEN '430' AND '438'
             OR
             SUBSTR(icd9_code, 1, 5) = '36234'
-            THEN 1 
+THEN 1 
             ELSE 0 END) AS cerebrovascular_disease
 
         -- Dementia
