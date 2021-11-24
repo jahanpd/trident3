@@ -242,7 +242,7 @@ and
 
 select 
     s.stay_id as stay_id,
-    array_agg(struct( starttime, endtime, duration)) 
+    array_agg(struct( starttime, endtime, duration)) intropes
 from
     (
     select
@@ -264,6 +264,6 @@ from
     from
       vasomv
     ) s
-LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` ad ON ad.icustay_id = s.stay_id
+LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu ON icu.icustay_id = s.stay_id
 FILTER_HERE
 group by s.stay_id

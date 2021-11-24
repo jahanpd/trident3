@@ -28,12 +28,10 @@ WITH vitals AS
 (
     select
         s.icustay_id,
-        s.hadm_id,
         (select array_agg(struct(charttime, ci) order by charttime) from unnest(ci) where ci is not null) ci,
     from (
         select 
             g.icustay_id,
-            min(g.hadm_id) as hadm_id,
             array_agg(struct(g.charttime, g.valuenum as ci)) ci
         from `physionet-data.mimiciii_clinical.chartevents` g
         where 
@@ -44,7 +42,7 @@ WITH vitals AS
 )
 SELECT
 -- vitals
-    vitals.icustay_id
+    vitals.icustay_id as stay_id
     , vitals.hr as hr
     , vitals.sbp as sbp
     , vitals.dbp as dbp
@@ -54,7 +52,7 @@ SELECT
     , vitals.spo2 as spo2
     , cardiac_index.ci as cardiac_index
 FROM
-`physionet-data.mimiciii_clinical.admissions` ad
-RIGHT JOIN cardiac_index ON ad.hadm_id = cardiac_index.hadm_id
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN cardiac_index ON icu.icustay_id = cardiac_index.icustay_id
 LEFT JOIN vitals ON vitals.icustay_id = cardiac_index.icustay_id
 FILTER_HERE

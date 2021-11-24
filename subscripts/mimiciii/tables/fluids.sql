@@ -350,6 +350,6 @@ FROM
     -- AND
     charttime != charttime_lead
   ) s
-LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` ad ON ad.icustay_id = s.stay_id
+LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu ON icu.icustay_id = s.stay_id
 FILTER_HERE
 group by s.stay_id

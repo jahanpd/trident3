@@ -13,9 +13,9 @@ WITH aki AS
 )
 SELECT
 -- blood product administration
-    ad.icustay_id as stay_id
+    aki.icustay_id as stay_id
     , aki.aki as aki
  FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN aki on ad.ICUSTAY_ID = aki.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN aki on icu.ICUSTAY_ID = aki.ICUSTAY_ID
 FILTER_HERE

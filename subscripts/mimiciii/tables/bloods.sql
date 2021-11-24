@@ -131,7 +131,7 @@ with bloods as (
 )
 SELECT
 -- blood gases
-    ad.icustay_id as stay_id
+    icu.icustay_id as stay_id
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ph)
         where charttime > icu.intime and charttime < icu.outtime
@@ -281,10 +281,6 @@ SELECT
         where charttime > icu.intime and charttime < icu.outtime
     ) as inr
     , (select array_agg(struct(charttime, value) order by charttime) 
-        from unnest(bloods.inr)
-        where charttime > icu.intime and charttime < icu.outtime
-    ) as inr
-    , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.fibrinogen)
         where charttime > icu.intime and charttime < icu.outtime
     ) as fibrinogen
@@ -302,7 +298,7 @@ SELECT
     ) as pt
     -- other bloods
     , bloods.hba1c as hba1c
-FROM `physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN bloods ON ad.subject_id = bloods.subject_id
-LEFT JOIN glucose ON ad.subject_id = glucose.subject_id
+FROM `physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN bloods ON icu.subject_id = bloods.subject_id
+LEFT JOIN glucose ON icu.subject_id = glucose.subject_id
 FILTER_HERE

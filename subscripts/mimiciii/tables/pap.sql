@@ -44,13 +44,13 @@ WITH PASP AS (
 )
 SELECT
 -- blood product administration
-    ad.icustay_id
+    icu.icustay_id as stay_id
     , PASP.PASP as pasp
     , PADP.PADP as padp
     , mPAP.mPAP as mpap
 FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN PASP on ad.ICUSTAY_ID = PASP.ICUSTAY_ID
-LEFT JOIN PADP on ad.ICUSTAY_ID = PADP.ICUSTAY_ID
-LEFT JOIN mPAP on ad.ICUSTAY_ID = mPAP.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN PASP on icu.ICUSTAY_ID = PASP.ICUSTAY_ID
+LEFT JOIN PADP on icu.ICUSTAY_ID = PADP.ICUSTAY_ID
+LEFT JOIN mPAP on icu.ICUSTAY_ID = mPAP.ICUSTAY_ID
 FILTER_HERE

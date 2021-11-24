@@ -12,9 +12,9 @@ WITH infection AS (
 )
 SELECT
 -- blood product administration
-    ad.icustay_id
+    icu.icustay_id as stay_id
     , infection.inf as infection
  FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN infection on ad.ICUSTAY_ID = infection.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN infection on icu.ICUSTAY_ID = infection.ICUSTAY_ID
 FILTER_HERE

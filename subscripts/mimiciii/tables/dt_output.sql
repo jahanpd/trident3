@@ -50,10 +50,10 @@ WITH dt_output AS
 )
 SELECT
 -- blood product administration
-    ad.icustay_id
+    icu.icustay_id as stay_id
     , dt_output.output as dtoutput
 
  FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN dt_output on ad.ICUSTAY_ID = dt_output.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN dt_output on icu.ICUSTAY_ID = dt_output.ICUSTAY_ID
 FILTER_HERE

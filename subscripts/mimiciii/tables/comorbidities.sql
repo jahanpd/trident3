@@ -1,6 +1,6 @@
 WITH com as (
     SELECT
-        ad.hadm_id
+        icu.hadm_id
         -- Myocardial infarction
         , MAX(CASE WHEN
             SUBSTR(icd9_code, 1, 3) IN ('410','412')
@@ -170,11 +170,11 @@ WITH com as (
             THEN 1 
             ELSE 0 END) AS smoking
         -- NEED TO ADD EXTRA DEPRESSION/OPIOID DEPENDENCE COMORBS
-    FROM `physionet-data.mimiciii_clinical.diagnoses_icd` ad
-    GROUP BY ad.hadm_id
+    FROM `physionet-data.mimiciii_clinical.diagnoses_icd` icu
+    GROUP BY icu.hadm_id
 )
 SELECT
-    ad.icustay_id as stay_id   
+    icu.icustay_id as stay_id   
     , com.myocardial_infarct as mi
     , com.arrhythmia as arrhythmia
     , com.congestive_heart_failure as ccf
@@ -196,7 +196,7 @@ SELECT
     , com.metastatic_solid_tumor as met_ca
     , com.aids as aids
     , com.smoking as smoking
-FROM `physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN com ON com.hadm_id = ad.hadm_id
+FROM `physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN com ON com.hadm_id = icu.hadm_id
 FILTER_HERE
 

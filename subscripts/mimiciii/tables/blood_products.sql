@@ -133,15 +133,15 @@ WITH prbcs AS
 )
 SELECT
 -- blood product administration
-    ad.icustay_id as stay_id
+    icu.icustay_id as stay_id
     , prbcs.bloodproduct as prbc
     , plts.bloodproduct as plts
     , ffp.bloodproduct as ffp
     , cryo.bloodproduct as cryo
 FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN prbcs ON ad.icustay_id = prbcs.icustay_id
-LEFT JOIN plts ON prbcs.ICUSTAY_ID = plts.ICUSTAY_ID
-LEFT JOIN ffp ON prbcs.ICUSTAY_ID = ffp.ICUSTAY_ID
-LEFT JOIN cryo ON prbcs.ICUSTAY_ID = cryo.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN prbcs ON icu.icustay_id = prbcs.icustay_id
+LEFT JOIN plts ON icu.ICUSTAY_ID = plts.ICUSTAY_ID
+LEFT JOIN ffp ON icu.ICUSTAY_ID = ffp.ICUSTAY_ID
+LEFT JOIN cryo ON icu.ICUSTAY_ID = cryo.ICUSTAY_ID
 FILTER_HERE

@@ -96,10 +96,12 @@ WITH surgery AS
     select
         s.icustay_id,
         (select array_agg(struct(starttime, endtime, duration_hours) order by starttime) from unnest(vent) where duration_hours is not null) vent,
+        s.begintime
     from (
         select
             g.icustay_id,
-            array_agg(struct(g.starttime, g.endtime, g.duration_hours)) vent
+            array_agg(struct(g.starttime, g.endtime, g.duration_hours)) vent,
+            min(g.starttime) as begintime
         from `physionet-data.mimiciii_derived.ventilation_durations` g
         group by g.icustay_id
     ) s
@@ -115,9 +117,11 @@ SELECT
     , surgery.pulmonary as pulmonary
     , dt_output.output as dtoutput
     , vent.vent as vent_array
+    , vent.begintime as postop_intime
 FROM `physionet-data.mimiciii_clinical.admissions` ad
 LEFT JOIN surgery ON ad.hadm_id = surgery.hadm_id
 RIGHT JOIN `physionet-data.mimiciii_clinical.icustays` AS icu ON ad.hadm_id = icu.HADM_ID
 LEFT JOIN dt_output on icu.ICUSTAY_ID = dt_output.ICUSTAY_ID
 LEFT JOIN vent on icu.ICUSTAY_ID = vent.icustay_id
+
 

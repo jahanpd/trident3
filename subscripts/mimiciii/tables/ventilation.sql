@@ -12,7 +12,7 @@ WITH vent AS (
 )
 SELECT
 -- blood product administration
-    ad.icustay_id
+    icu.icustay_id as stay_id
     , vent.vent as vent_array
     , (CASE WHEN
             ARRAY_LENGTH(vent.vent) > 1
@@ -24,6 +24,6 @@ SELECT
         ELSE null END ) as reint_time
     , (vent.vent[ORDINAL(1)].endtime) ext_time
  FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN vent on ad.ICUSTAY_ID = vent.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN vent on icu.ICUSTAY_ID = vent.ICUSTAY_ID
 FILTER_HERE

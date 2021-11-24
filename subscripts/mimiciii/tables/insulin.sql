@@ -33,10 +33,10 @@ WITH insulin AS
 )
 SELECT
 -- blood product administration
-    ad.icustay_id
+    icu.icustay_id as stay_id
     , insulin.insulin as insulin
 
  FROM
-`physionet-data.mimiciii_derived.icustay_detail` ad
-LEFT JOIN insulin on ad.ICUSTAY_ID = insulin.ICUSTAY_ID
+`physionet-data.mimiciii_derived.icustay_detail` icu
+LEFT JOIN insulin on icu.ICUSTAY_ID = insulin.ICUSTAY_ID
 FILTER_HERE

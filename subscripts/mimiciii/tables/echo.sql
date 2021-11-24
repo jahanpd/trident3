@@ -1,5 +1,5 @@
 select
-    s.hadm_id,
+    icu.icustay_id as stay_id,
     (select array_agg(struct(
     CHARTTIME, STORETIME, CATEGORY, cast(REGEXP_REPLACE(EF[ordinal(1)], '[^0-9]','') as int64 ) as VALUE) order by CHARTTIME) from unnest(s.note)
     WHERE ((ARRAY_LENGTH(EF) > 0))) echo,
@@ -15,7 +15,7 @@ FROM
     LEFT JOIN `physionet-data.mimiciii_clinical.icustays` AS icu ON notes.HADM_ID = icu.hadm_id
     group by notes.hadm_id
 ) s
-LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` ad ON ad.HADM_ID = s.hadm_id
+LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu ON icu.HADM_ID = s.hadm_id
 FILTER_HERE
 
 
