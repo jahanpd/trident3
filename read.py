@@ -61,7 +61,7 @@ def get_data(project_id, overwrite=[], dataset=[]):
         del_filt = True if 'filter' in overwrite else False
         tables = client.list_tables(dataset_id)  # Make an API request.
         tables_ = [table.table_id for table in tables]
-        if 'filtertable_mimiciii' not in tables or del_filt:
+        if 'filtertable_mimiciii' not in tables_ or del_filt:
             print("adding filtertable for mimiciii")
             table_id = "{}.trident.{}".format(client.project, "filtertable_mimiciii")
             client.delete_table(table_id, not_found_ok=True)
@@ -104,7 +104,7 @@ def get_data(project_id, overwrite=[], dataset=[]):
                         s[0], base_size, s[1]
                     ))
 
-        fq = "SELECT *\nFROM\n"
+        fq = "SELECT * except () \nFROM\n"
         fq = fq + "{}.trident.{}_mimiciii as {}\n".format(client.project, "base", "base")
         base_join = "LEFT JOIN {}.trident.{}_mimiciii as {} on {}.stay_id = base.stay_id \n"
         for f in [f for f in mimiciiistored if f != 'base']:
@@ -144,8 +144,8 @@ def get_data(project_id, overwrite=[], dataset=[]):
         tables_ = [table.table_id for table in tables]
 
         tables = client.list_tables(dataset_id)  # Make an API request.
-        tables = [table.table_id for table in tables]
-        if 'filtertable_mimiciv' not in tables or del_filt:
+        tables_ = [table.table_id for table in tables]
+        if 'filtertable_mimiciv' not in tables_ or del_filt:
             print("adding filtertable for mimiciv")
             table_id = "{}.trident.{}".format(client.project, "filtertable_mimiciv")
             client.delete_table(table_id, not_found_ok=True)
