@@ -4,7 +4,6 @@ import pydata_google_auth
 from datetime import date, datetime
 import simplejson as json
 import pandas as pd
-import dask.dataframe as dd
 import numpy as np
 import argparse
 from tqdm import tqdm
