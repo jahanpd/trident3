@@ -110,6 +110,7 @@ SELECT
     ad.subject_id as subject_id
     , ad.hadm_id as hadm_id
     , icu.ICUSTAY_ID as stay_id
+    , icu2.icustay_seq as icustay_seq
     , surgery.cabg as cabg
     , surgery.aortic as aortic
     , surgery.mitral as mitral
@@ -121,6 +122,7 @@ SELECT
 FROM `physionet-data.mimiciii_clinical.admissions` ad
 LEFT JOIN surgery ON ad.hadm_id = surgery.hadm_id
 RIGHT JOIN `physionet-data.mimiciii_clinical.icustays` AS icu ON ad.hadm_id = icu.HADM_ID
+LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu2 on icu2.icustay_id = icu.icustay_id
 LEFT JOIN dt_output on icu.ICUSTAY_ID = dt_output.ICUSTAY_ID
 LEFT JOIN vent on icu.ICUSTAY_ID = vent.icustay_id
 

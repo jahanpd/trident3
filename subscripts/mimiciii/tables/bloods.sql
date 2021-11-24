@@ -134,167 +134,167 @@ SELECT
     icu.icustay_id as stay_id
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ph)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as ph
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bicarb)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bicarb
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.baseexcess)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as baseexcess
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.chloride)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as chloride
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.free_calcium)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as free_calcium
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(glucose.glucose)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as glucose
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.potassium)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as potassium
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.sodium)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as sodium
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.lactate)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as lactate
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.hematocrit)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as hematocrit
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.hb)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as hb
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.pco2)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as pco2
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.po2)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as po2
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bg_temp)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bg_temp
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.fio2)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as fio2
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ventrate)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as ventrate
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.tidalvol)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as tidalvol
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.aado2)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as aado2
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.specimen)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as specimen -- this is needed to delineate between art/venous gases
     -- blood film
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.neutrophils)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as neutrophils
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.lymphocytes)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as lymphocytes
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.wcc)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as wcc
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.plt)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as plt
     -- inflammatory
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.crp)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as crp
     -- chemistry
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.albumin)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as albumin
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.creatinine)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as creatinine
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bun)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bun
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.magnesium)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as magnesium
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.alt)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as alt
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.alp)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as alp
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ast)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as ast
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ggt)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as ggt
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bilirubin_total)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bilirubin_total
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bilirubin_direct)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bilirubin_direct
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bilirubin_indirect)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bilirubin_indirect
     -- coags
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.inr)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as inr
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.fibrinogen)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as fibrinogen
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.bleed_time)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as bleed_time
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.ptt)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as ptt
     , (select array_agg(struct(charttime, value) order by charttime) 
         from unnest(bloods.pt)
-        where charttime > icu.intime and charttime < icu.outtime
+        where charttime > ft.postop_intime and charttime < icu.outtime
     ) as pt
     -- other bloods
     , bloods.hba1c as hba1c
