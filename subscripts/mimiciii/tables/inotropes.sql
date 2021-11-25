@@ -242,7 +242,7 @@ and
 
 select 
     s.stay_id as stay_id,
-    array_agg(struct( starttime, endtime, duration)) intropes
+    array_agg(struct( starttime, endtime, duration)) inotropes
 from
     (
     select

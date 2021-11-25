@@ -48,6 +48,7 @@ SELECT
     , vitals.rr as rr
     , vitals.temp as temp
     , vitals.spo2 as spo2
+    , cardiac_index.ci as cardiac_index
 FROM `physionet-data.mimic_derived.icustay_detail` AS icu
 LEFT JOIN vitals ON icu.stay_id = vitals.stay_id
 LEFT JOIN cardiac_index ON icu.stay_id = cardiac_index.stay_id
