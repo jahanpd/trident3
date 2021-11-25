@@ -27,6 +27,12 @@ SELECT
     , pat.dod as dod
     , sofa.sofa
     , ft.postop_intime as postop_intime
+    , ft.cabg as cabg
+    , ft.aortic as aortic
+    , ft.mitral as mitral
+    , ft.tricuspid as tricuspid
+    , ft.pulmonary as pulmonary
+
 FROM `physionet-data.mimiciii_clinical.admissions` ad
 RIGHT JOIN `physionet-data.mimiciii_derived.icustay_detail` AS icu ON ad.HADM_ID = icu.hadm_id
 LEFT JOIN `physionet-data.mimiciii_clinical.icustays` as icu2 on icu2.ICUSTAY_ID = icu.icustay_id

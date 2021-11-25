@@ -15,7 +15,7 @@ FROM
     LEFT JOIN `physionet-data.mimiciii_clinical.icustays` AS icu ON notes.HADM_ID = icu.hadm_id
     group by notes.hadm_id
 ) s
-LEFT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu ON icu.HADM_ID = s.hadm_id
+RIGHT JOIN `physionet-data.mimiciii_derived.icustay_detail` icu ON icu.HADM_ID = s.hadm_id
 FILTER_HERE
 
 

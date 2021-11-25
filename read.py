@@ -9,6 +9,7 @@ import argparse
 from tqdm import tqdm
 from os import listdir
 from os.path import isfile, join
+import re
 
 # helper function to interpret JSON
 def json_serial(obj):
@@ -104,14 +105,16 @@ def get_data(project_id, overwrite=[], dataset=[]):
                         s[0], base_size, s[1]
                     ))
 
-        fq = "SELECT * except () \nFROM\n"
-        fq = fq + "{}.trident.{}_mimiciii as {}\n".format(client.project, "base", "base")
+        select = "SELECT \n base.* \n"
+        from_ = "FROM {}.trident.{}_mimiciii as {}\n".format(client.project, "base", "base")
+        base_select = ", {}.* EXCEPT (stay_id) \n"
         base_join = "LEFT JOIN {}.trident.{}_mimiciii as {} on {}.stay_id = base.stay_id \n"
         for f in [f for f in mimiciiistored if f != 'base']:
-            fq = fq + base_join.format(
+            from_ = from_ + base_join.format(
                 client.project, f, f, f
             )
-
+            select = select + base_select.format(f)
+        fq = select + from_
         print("saving MIMICIII")
 
         query_mimiciii = client.query(fq)
@@ -187,14 +190,16 @@ def get_data(project_id, overwrite=[], dataset=[]):
                         s[0], base_size, s[1]
                     ))
 
-        fq = "SELECT *\nFROM\n"
-        fq = fq + "{}.trident.{}_mimiciv as {}\n".format(client.project, "base", "base")
+        select = "SELECT \n base.* \n"
+        from_ = "FROM {}.trident.{}_mimiciv as {}\n".format(client.project, "base", "base")
+        base_select = ", {}.* EXCEPT (stay_id) \n"
         base_join = "LEFT JOIN {}.trident.{}_mimiciv as {} on {}.stay_id = base.stay_id \n"
         for f in [f for f in mimicivstored if f != 'base']:
-            fq = fq + base_join.format(
+            from_ = from_ + base_join.format(
                 client.project, f, f, f
             )
-
+            select = select + base_select.format(f)
+        fq = select + from_
         print("saving MIMICIV")
 
         query_mimiciv = client.query(fq)
