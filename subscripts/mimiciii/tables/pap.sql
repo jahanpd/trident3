@@ -2,7 +2,7 @@
 WITH PASP AS (
    select
        s.icustay_id,
-       (select array_agg(struct(charttime, PASP) order by charttime) from unnest(PASP) where PASP is not null) PASP,
+       (select array_agg(struct(charttime, PASP) order by charttime) from (select distinct * from unnest(PASP) where PASP is not null)) PASP,
    from (
        select
            g.icustay_id,
@@ -17,7 +17,7 @@ WITH PASP AS (
 , PADP AS (
    select
        s.icustay_id,
-       (select array_agg(struct(charttime, PADP) order by charttime) from unnest(PADP) where PADP is not null) PADP,
+       (select array_agg(struct(charttime, PADP) order by charttime) from (select distinct * from unnest(PADP) where PADP is not null)) PADP,
    from (
        select
            g.icustay_id,
@@ -32,7 +32,7 @@ WITH PASP AS (
 , mPAP AS (
    select
        s.icustay_id,
-       (select array_agg(struct(charttime, mPAP) order by charttime) from unnest(mPAP) where mPAP is not null) mPAP,
+       (select array_agg(struct(charttime, mPAP) order by charttime) from (select distinct * from unnest(mPAP) where mPAP is not null)) mPAP,
    from (
        select
            g.icustay_id,

@@ -1,7 +1,8 @@
 WITH vent AS (
     select
         s.icustay_id,
-        (select array_agg(struct(starttime, endtime, duration_hours) order by starttime) from unnest(vent) where duration_hours is not null) vent,
+        (select array_agg(struct(starttime, endtime, duration_hours) order by starttime) 
+            from (select distinct * from unnest(vent) where duration_hours is not null)) vent,
     from (
         select
             g.icustay_id,

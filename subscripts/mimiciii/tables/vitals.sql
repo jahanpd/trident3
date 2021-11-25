@@ -3,19 +3,19 @@ WITH vitals AS
     select 
         s.icustay_id,
         (select array_agg(struct(charttime, HeartRate as value) order by charttime)
-        from unnest(vit) where HeartRate is not null) hr,
+        from (select distinct * from unnest(vit) where HeartRate is not null)) hr,
         (select array_agg(struct(charttime, SysBP as value) order by charttime)
-        from unnest(vit) where SysBP is not null) sbp,
+        from (select distinct * from unnest(vit) where SysBP is not null)) sbp,
         (select array_agg(struct(charttime, DiasBP as value) order by charttime)
-        from unnest(vit) where DiasBP is not null) dbp,
+        from (select distinct * from unnest(vit) where DiasBP is not null)) dbp,
         (select array_agg(struct(charttime, MeanBP as value) order by charttime)
-        from unnest(vit) where MeanBP is not null) meanbp,
+        from (select distinct * from unnest(vit) where MeanBP is not null)) meanbp,
         (select array_agg(struct(charttime, RespRate as value) order by charttime)
-        from unnest(vit) where RespRate is not null) rr,
+        from (select distinct * from unnest(vit) where RespRate is not null)) rr,
         (select array_agg(struct(charttime, TempC as value) order by charttime)
-        from unnest(vit) where TempC is not null) temp,
+        from (select distinct * from unnest(vit) where TempC is not null)) temp,
         (select array_agg(struct(charttime, SpO2 as value) order by charttime)
-        from unnest(vit) where SpO2 is not null) spo2
+        from (select distinct * from unnest(vit) where SpO2 is not null)) spo2
     from (
         select
             t.icustay_id,
@@ -28,7 +28,7 @@ WITH vitals AS
 (
     select
         s.icustay_id,
-        (select array_agg(struct(charttime, ci) order by charttime) from unnest(ci) where ci is not null) ci,
+        (select array_agg(struct(charttime, ci) order by charttime) from (select distinct * from unnest(ci) where ci is not null)) ci,
     from (
         select 
             g.icustay_id,

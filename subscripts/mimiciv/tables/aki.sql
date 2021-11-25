@@ -16,7 +16,7 @@ SELECT
     , (select array_agg(
             struct(charttime, aki_stage_creat, aki_stage_uo) 
             order by charttime) 
-    from unnest(aki.aki)
+    from (select distinct * from unnest(aki.aki))
     where charttime >= ft.postop_intime and charttime < icu.icu_outtime
     ) as aki
 FROM `physionet-data.mimic_derived.icustay_detail` AS icu

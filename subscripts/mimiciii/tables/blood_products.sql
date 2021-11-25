@@ -3,7 +3,11 @@ WITH prbcs AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        (select 
+            array_agg(struct(charttime, bloodproduct, unit) order by charttime) 
+            from (SELECT DISTINCT * FROM UNNEST(bloodproduct)) 
+            where bloodproduct is not null
+        ) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
@@ -36,7 +40,8 @@ WITH prbcs AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) 
+            from (select distinct * from unnest(bloodproduct) where bloodproduct is not null)) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
@@ -69,7 +74,8 @@ WITH prbcs AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) 
+            from (select distinct * from unnest(bloodproduct) where bloodproduct is not null)) bloodproduct,
     from (
         select 
             ICUSTAY_ID,
@@ -102,7 +108,8 @@ WITH prbcs AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) from unnest(bloodproduct) where bloodproduct is not null) bloodproduct,
+        (select array_agg(struct(charttime, bloodproduct, unit) order by charttime) 
+            from (select distinct * from unnest(bloodproduct) where bloodproduct is not null)) bloodproduct,
     from (
         select 
             ICUSTAY_ID,

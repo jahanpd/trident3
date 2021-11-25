@@ -2,7 +2,8 @@ WITH dt_output AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, output, unit) order by CHARTTIME) from unnest(d.output) where output is not null) output,
+        (select array_agg(struct(charttime, output, unit) order by CHARTTIME) 
+            from (select distinct * from unnest(d.output) where output is not null)) output,
     from (
         select 
             s.ICUSTAY_ID,

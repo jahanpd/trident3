@@ -2,7 +2,8 @@ WITH insulin AS
 (
     select
         d.ICUSTAY_ID,
-        (select array_agg(struct(charttime, amount, unit) order by charttime) from unnest(insulin) where amount is not null) insulin,
+        (select array_agg(struct(charttime, amount, unit) order by charttime)
+            from (select distinct * from unnest(insulin) where amount is not null)) insulin,
     from (
         select 
             ICUSTAY_ID,

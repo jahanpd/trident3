@@ -1,7 +1,9 @@
 WITH infection AS (
     select
         s.icustay_id,
-        (select array_agg(struct(suspected_infection_time, antibiotic_time, antibiotic, specimen, positiveculture) order by suspected_infection_time) from unnest(inf)) inf,
+        (select array_agg(struct(suspected_infection_time, antibiotic_time, antibiotic, specimen, positiveculture)
+            order by suspected_infection_time) 
+            from (select distinct * from unnest(inf))) inf,
     from (
         select
             g.icustay_id,

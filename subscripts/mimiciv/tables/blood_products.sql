@@ -67,19 +67,19 @@ WITH prbcs AS
 SELECT
     icu.stay_id
     , (select array_agg(struct(starttime, bloodproduct, unit) order by starttime) 
-        from unnest(prbcs.bloodproduct)
+        from (select distinct * from unnest(prbcs.bloodproduct))
         where starttime >= ft.postop_intime  and starttime <= icu.icu_outtime
     ) as prbc
     , (select array_agg(struct(starttime, bloodproduct, unit) order by starttime) 
-        from unnest(plts.bloodproduct)
+        from (select distinct * from unnest(plts.bloodproduct))
         where starttime >= ft.postop_intime  and starttime <= icu.icu_outtime
     ) as plts
     , (select array_agg(struct(starttime, bloodproduct, unit) order by starttime) 
-        from unnest(ffp.bloodproduct)
+        from (select distinct * from unnest(ffp.bloodproduct))
         where starttime >= ft.postop_intime  and starttime <= icu.icu_outtime
     )  as ffp
     , (select array_agg(struct(starttime, bloodproduct, unit) order by starttime) 
-        from unnest(cryo.bloodproduct)
+        from (select distinct * from unnest(cryo.bloodproduct))
         where starttime >= ft.postop_intime  and starttime <= icu.icu_outtime
     ) as cryo
 FROM `physionet-data.mimic_derived.icustay_detail` AS icu
