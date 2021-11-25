@@ -96,7 +96,7 @@ def get_data(project_id, overwrite=[], dataset=[]):
                     else:
                         sizes.append((f, result.total_rows))
                 except Exception as e:
-                    print(f, str(e))
+                    print(f, e)
 
         if 'none' not in overwrite:
             for s in sizes:

@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 
-# mimic combined tests
-
-# import data
-data = pd.read_csv("mimic_combined.csv")
-
-print(list(data))
-# check missingness from drain tubes
-ratio = len(data[data.dtoutput == '[]']) / len(data)
-print("Drain tube missing ratio: {}".format(ratio))
+# mimic iii tests
+data = pd.read_csv("mimiciii.csv")
+print(data)
+for c in list(data):
+    # view missingness
+    missing = max(
+        np.sum(np.isna(data[c].values)),
+        np.sum(data[c].values == '[]')
+    )

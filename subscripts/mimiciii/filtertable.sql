@@ -46,11 +46,13 @@ WITH surgery AS
 (
     select
         d.ICUSTAY_ID,
+        d.begintime,
         (select array_agg(struct(charttime, output, unit) order by CHARTTIME) from unnest(d.output) where output is not null) output,
     from (
         select 
             s.ICUSTAY_ID,
             array_agg(struct(s.charttime, s.output, s.unit)) output,
+            min(s.charttime) as begintime
         from (
             select
                 ICUSTAY_ID
@@ -118,7 +120,10 @@ SELECT
     , surgery.pulmonary as pulmonary
     , dt_output.output as dtoutput
     , vent.vent as vent_array
-    , vent.begintime as postop_intime
+    , CASE WHEN vent.begintime is not null
+    THEN vent.begintime
+    ELSE dt_output.begintime END postop_intime
+    , icu.intime as original_intime
 FROM `physionet-data.mimiciii_clinical.admissions` ad
 LEFT JOIN surgery ON ad.hadm_id = surgery.hadm_id
 RIGHT JOIN `physionet-data.mimiciii_clinical.icustays` AS icu ON ad.hadm_id = icu.HADM_ID

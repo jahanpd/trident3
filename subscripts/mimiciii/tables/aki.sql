@@ -2,7 +2,11 @@ WITH aki AS
 (
     select
         s.icustay_id,
-        (select array_agg(struct(charttime, aki_stage_creat, aki_stage_uo) order by charttime) from unnest(aki) where aki is not null) aki,
+        (select 
+            array_agg( struct(charttime, aki_stage_creat, aki_stage_uo) order by charttime) 
+            from (SELECT DISTINCT * FROM UNNEST(aki)) 
+            where aki is not null
+        ) aki,
     from (
         select 
         g.icustay_id,
@@ -12,7 +16,6 @@ WITH aki AS
     ) s
 )
 SELECT
--- blood product administration
     aki.icustay_id as stay_id
     , aki.aki as aki
  FROM
