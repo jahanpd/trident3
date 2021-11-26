@@ -8,7 +8,7 @@ WITH PASP AS (
            g.icustay_id,
            array_agg(struct(g.charttime, g.valuenum as PASP)) PASP
        from `physionet-data.mimiciii_clinical.chartevents` g
-       where itemid in (220059, 491)
+       where itemid in (220061, 49)
        group by g.icustay_id
    ) s
 )
@@ -38,7 +38,7 @@ WITH PASP AS (
            g.icustay_id,
            array_agg(struct(g.charttime, g.valuenum as mPAP)) mPAP
        from `physionet-data.mimiciii_clinical.chartevents` g
-       where itemid in (220061, 492)
+       where itemid in (2220059, 491)
        group by g.icustay_id
    ) s
 )
