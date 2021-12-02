@@ -231,7 +231,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='input project id')
     parser.add_argument('--project_id', type=str, default='auspicious-silo-247823')
     parser.add_argument(
-        '--overwrite', type=str, default='none', nargs='+',
+        '--overwrite', type=str, default=['none'], nargs='+',
         choices=[
             "aki", "base", "blood_products", "bloods", "comorbidites",
             "dt_output", "echo", "infection", "insulin", "pap", "ventilation",
@@ -240,10 +240,9 @@ if __name__ == '__main__':
         ]
     )
     parser.add_argument(
-        '--dataset', type=str, default='both', nargs='+',
+        '--dataset', type=str, default=['both'], nargs='+',
         choices=["both", "mimiciii", "mimiciv"]
     )
-    args = parser.parse_args()
     mimiciii, mimiciv, mimic_combined = get_data(
         args.project_id, args.overwrite, args.dataset)
     if mimiciii is not None:
