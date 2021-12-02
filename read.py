@@ -243,6 +243,7 @@ if __name__ == '__main__':
         '--dataset', type=str, default=['both'], nargs='+',
         choices=["both", "mimiciii", "mimiciv"]
     )
+    args = parser.parse_args()
     mimiciii, mimiciv, mimic_combined = get_data(
         args.project_id, args.overwrite, args.dataset)
     if mimiciii is not None:
