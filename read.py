@@ -125,6 +125,7 @@ def get_data(project_id, overwrite=[], dataset=[]):
         for row in query_mimiciii:
             records.append(dict(row))
             pbar.update(1)
+        pbar.close()
         json_data = json.dumps(records, default=json_serial, use_decimal=True)
         mimiciii = pd.read_json(json_data)
     else:
@@ -210,12 +211,13 @@ def get_data(project_id, overwrite=[], dataset=[]):
         for row in query_mimiciv:
             records.append(dict(row))
             pbar.update(1)
+        pbar.close()
         json_data = json.dumps(records, default=json_serial, use_decimal=True)
         mimiciv = pd.read_json(json_data)
     else:
         mimiciv = None
 
-    if 'both' in dataset and False:
+    if 'both' in dataset:
         mimiciii_subset = mimiciii.loc[mimiciii['dbsource'] == 'carevue']
         seta = set(list(mimiciii))
         setb = set(list(mimiciv))
