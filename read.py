@@ -237,7 +237,7 @@ if __name__ == '__main__':
         choices=[
             "aki", "base", "blood_products", "bloods", "comorbidites",
             "dt_output", "echo", "infection", "insulin", "pap", "ventilation",
-            "vitals", "inotropes", "readmission", "filter",
+            "vitals", "inotropes", "readmission", "filter", "fluids",
             "none", "all"
         ]
     )
